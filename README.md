@@ -33,62 +33,73 @@ If you are running this on Windows, you will have to do the following things:
 > * Make sure that if they have **Hyper-V** disabled. Check via **Turn Windows features on or off**, and disable it and restart if need be.
 > * From this point onward to the end of the course, make sure they're **ALWAYS** running their terminal as an administrator, to make sure they have the rights to access whatever they need.
 
-
-
-Once you have vagrant installed you can test it by opening a terminal and typing the following:
-
 ```bash
-vagrant
-
-# You should see the following
-
-vagrant
-Usage: vagrant [options] <command> [<args>]
-
     -v, --version                    Print the version and exit.
     -h, --help                       Print this help.
-
-Common commands:
-     box             manages boxes: installation, removal, etc.
-     connect         connect to a remotely shared Vagrant environment
-     destroy         stops and deletes all traces of the vagrant machine
-     global-status   outputs status Vagrant environments for this user
-     halt            stops the vagrant machine
-     help            shows the help for a subcommand
-     hosts           Information about hostnames managed by the vagrant-hosts plugin
-     hostsupdater    
-     init            initializes a new Vagrant environment by creating a Vagrantfile
-     login           log in to HashiCorp\'s Atlas
-     package         packages a running vagrant environment into a box
-     plugin          manages plugins: install, uninstall, update, etc.
-     port            displays information about guest port mappings
-     powershell      connects to machine via powershell remoting
-     provision       provisions the vagrant machine
-     push            deploys code in this environment to a configured destination
-     rdp             connects to machine via RDP
-     rebuild         plugin: vagrant-digitalocean: destroys and ups the vm with the same ip address
-     reload          restarts vagrant machine, loads new Vagrantfile configuration
-     resume          resume a suspended vagrant machine
-     share           share your Vagrant environment with anyone in the world
-     snapshot        manages snapshots: saving, restoring, etc.
-     ssh             connects to machine via SSH
-     ssh-config      outputs OpenSSH valid configuration to connect to the machine
-     status          outputs status of the vagrant machine
-     suspend         suspends the machine
-     up              starts and provisions the vagrant environment
-     vbguest         
-     version         prints current and latest Vagrant version
-
-For help on any individual command run `vagrant COMMAND -h`
-
-Additional subcommands are available, but are either more advanced
-or not commonly used. To see all subcommands, run the command
-`vagrant list-commands`.
 ```
+
+## VirtualBox Installation and Setup
+
+Vagrant uses another program called VirtualBox to actually create this "virtual" machine. Vagrant basically pulls together a few tools to setup and start a virtual machine. VirtualBox is the tool that actually creates the virtual machine.
+
+Let's install that now too.
+- if you face any errors please read the instruction/steps thoroughly
+
+[VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+- Ensure to install vitual box 6.1 version
+
+![](https://github.com/khanmaster/vb_vagrant_installtion/blob/master/images/VB_Version.png)
+
+We won't actually use VirtualBox directly. Vagrant will handle everything.
+
+> NOTE: Windows user, after installing Virtual Box, you will need to manually install the drivers:
+
+> 1. In File Explorer, navigate to `C:\Program Files\Oracle\VirtualBox\drivers\vboxdrv`
+> 2. Right click on the **VBoxDrv.inf** Setup Information file and and select Install
+> 3. When it's finished installing, open up a new terminal window and run `sc start vboxdrv`
+> 4. Press the Windows Key and search for **Control Panel**, go from there to **Network and Internet**, then **Network and Sharing Centre**, then **Change Adapter Settings**.
+> 5. Right click on **VirtualBox Host-Only Network** and choose **Properties**
+> 6. Click on **Install => Service**
+> 7. Under **Manufacturer** choose **Oracle Corporation** and under **Network Service**, choose **VirtualBox NDIS6 Bridged Networking driver**
+
+> This should install all the drivers you need to run Virtual Box on Windows.
+
+## Test Running Vagrant
+
+**THERE MUST BE A VAGRANTFILE IN WHICHEVER DIRECTORY YOU RUN VAGRANT FROM**
+
+Vagrantfile used for this exercise
+```
+
+Vagrant.configure("2") do |config|
+
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+  end
+
+ config.vm.box = "ubuntu/xenial64"
+# creating a virtual machine ubuntu 
+
+ config.vm.network "private_network", ip: "192.168.10.100"
+# creating a private ip to access our nginx server on the web from inside the VM
+
+# redirect the above to the specific web address
+ config.hostsupdater.aliases = ["development.local"]
+
+
+end
+```
+
+- Start Vagrant with ``vagrant up``
+- Check status with ``vagrant status``
+- Enter the VM with ``vagrant ssh``
+- After exiting VM, stop Vagrant with ``vagrant halt`` or suspend with ``vagrant suspend``
+
 
 ## Potential Errors
 
-**ERROR: HOSTSUPDATER**
+### ERROR: HOSTSUPDATER
 ```
 There are errors in the configuration of this machine. Please fix
 the following errors and try again:
@@ -101,7 +112,7 @@ Vagrant:
 vagrant plugin install vagrant-hostsupdate
 ```
 
-**ERROR: VBoxManage**
+### ERROR: VBoxManage: Hypervisor Partitions
 ```
 Stderr: VBoxManage.exe: error: Not in a hypervisor partition (HVP=0) (VERR_NEM_NOT_AVAILABLE).
 ```
